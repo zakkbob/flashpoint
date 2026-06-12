@@ -50,6 +50,7 @@ enum class HomeMenuAction {
   ReadingStats,
   Bookmarks,
   FileTransfer,
+  Flashcards,
   Settings,
 };
 
@@ -212,6 +213,7 @@ void appendHomeMenuItems(HomeMenuEntries& items, bool hasOpdsServers, bool hasRe
   }
 
   items.push({tr(STR_FILE_TRANSFER), Transfer, HomeMenuAction::FileTransfer});
+  items.push({tr(STR_FLASHCARDS), Flashcard, HomeMenuAction::Flashcards});
   items.push({tr(STR_SETTINGS_TITLE), Settings, HomeMenuAction::Settings});
 }
 
@@ -474,7 +476,7 @@ static_assert(HomeActivity::kMaxCachedBooks >= LyraCarouselMetrics::values.homeR
 
 int HomeActivity::getMenuItemCount() const {
   const auto& metrics = UITheme::getInstance().getMetrics();
-  int count = 4;  // File Browser, Recents, File transfer, Settings
+  int count = 5;  // File Browser, Recents, File transfer, Flashcards, Settings
   if (!metrics.homeContinueReadingInMenu && !recentBooks.empty()) {
     count += recentBooks.size();
   } else if (metrics.homeContinueReadingInMenu && !recentBooks.empty()) {

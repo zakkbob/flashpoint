@@ -31,6 +31,7 @@
 #include "components/icons/text24.h"
 #include "components/icons/transfer.h"
 #include "components/icons/wifi.h"
+#include "components/icons/flashcard.h"
 #include "fontIds.h"
 
 // Internal constants
@@ -105,6 +106,8 @@ const uint8_t* LyraTheme::iconForName(UIIcon icon, uint32_t size) {
         return WifiIcon;
       case UIIcon::Hotspot:
         return HotspotIcon;
+      case UIIcon::Flashcard:
+        return FlashcardIcon;
       default:
         return nullptr;
     }
