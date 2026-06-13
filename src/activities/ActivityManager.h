@@ -92,6 +92,7 @@ class ActivityManager {
   void goToFileTransfer(std::string returnBookPath = {});
   void goToNearbyStatsSync();
   void goToSettings();
+  void goToFlashcards();
   void goToFileBrowser(std::string path = {});
   void goToRecentBooks();
   void goToBrowser();

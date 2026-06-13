@@ -238,6 +238,7 @@ HomeMenuEntries buildMinimalMenuItems(bool hasOpdsServers, bool hasReadingStats,
   }
 
   items.push({tr(STR_FILE_TRANSFER), Transfer, HomeMenuAction::FileTransfer});
+  items.push({tr(STR_FLASHCARDS), Flashcard, HomeMenuAction::Flashcards});
   return items;
 }
 
@@ -1275,6 +1276,9 @@ void HomeActivity::loop() {
           case HomeMenuAction::FileTransfer:
             onFileTransferOpen();
             break;
+          case HomeMenuAction::Flashcards:
+            onFlashcardsOpen();
+            break;
           case HomeMenuAction::ContinueReading:
           case HomeMenuAction::Settings:
             break;
@@ -1444,6 +1448,9 @@ void HomeActivity::loop() {
         break;
       case HomeMenuAction::FileTransfer:
         onFileTransferOpen();
+        break;
+      case HomeMenuAction::Flashcards:
+        onFlashcardsOpen();
         break;
       case HomeMenuAction::Settings:
         onSettingsOpen();
@@ -1710,3 +1717,5 @@ void HomeActivity::onBookmarksOpen() {
   startActivityForResult(std::make_unique<BookmarksHomeActivity>(renderer, mappedInput),
                          [this](const ActivityResult&) { requestUpdate(); });
 }
+
+void HomeActivity::onFlashcardsOpen() { activityManager.goToFlashcards(); }

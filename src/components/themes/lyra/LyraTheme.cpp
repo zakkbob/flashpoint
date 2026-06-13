@@ -21,6 +21,7 @@
 #include "components/icons/chart.h"
 #include "components/icons/cover.h"
 #include "components/icons/file24.h"
+#include "components/icons/flashcard.h"
 #include "components/icons/folder.h"
 #include "components/icons/folder24.h"
 #include "components/icons/hotspot.h"
@@ -31,7 +32,6 @@
 #include "components/icons/text24.h"
 #include "components/icons/transfer.h"
 #include "components/icons/wifi.h"
-#include "components/icons/flashcard.h"
 #include "fontIds.h"
 
 // Internal constants
