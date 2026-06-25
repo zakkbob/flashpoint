@@ -1,33 +1,30 @@
 #pragma once
+
+#include <FSRS.h>
+
+#include <string>
+
+#include "CardStore.h"
 #include "activities/Activity.h"
 
-enum Rating : int { AGAIN, HARD, GOOD, EASY };
 enum Side : int { FRONT, BACK };
-
-struct Card {
- public:
-  std::string front;
-  std::string back;
-
-  explicit Card(std::string front, std::string back) : front(front), back(back) {};
-};
 
 class FlashcardsReviewActivity final : public Activity {
  private:
   Side side = FRONT;
+  CardStore cards;
 
-  Card card = Card("Is it flashcarding time already?", "Yes!");
-
-  void rate(Rating);
+  void grade(FSRS::Grade);
 
   void renderCard();
   void drawButtonHints();
 
  public:
-  explicit FlashcardsReviewActivity(GfxRenderer& renderer, MappedInputManager& mappedInput)
+  FlashcardsReviewActivity(GfxRenderer& renderer, MappedInputManager& mappedInput)
       : Activity("Flashcards", renderer, mappedInput) {};
 
   void onEnter() override;
+  void onExit() override;
   void render(RenderLock&&);
   void loop();
 };

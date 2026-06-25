@@ -1,5 +1,6 @@
 #include "FlashcardsReviewActivity.h"
 
+#include <FSRS.h>
 #include <GfxRenderer.h>
 #include <HalGPIO.h>
 #include <I18n.h>
@@ -10,7 +11,7 @@
 void FlashcardsReviewActivity::drawButtonHints() {
   switch (side) {
     case FRONT:
-      GUI.drawButtonHints(renderer, tr(STR_BACK), "", "", tr(STR_SHOW), true);
+      GUI.drawButtonHints(renderer, tr(STR_BACK), tr(STR_SHOW), "", "", true);
       break;
     case BACK:
       GUI.drawButtonHints(renderer, tr(STR_AGAIN), tr(STR_HARD), tr(STR_GOOD), tr(STR_EASY), true);
@@ -21,7 +22,14 @@ void FlashcardsReviewActivity::drawButtonHints() {
 void FlashcardsReviewActivity::onEnter() {
   Activity::onEnter();
 
+  cards.open();
   requestUpdate();
+};
+
+void FlashcardsReviewActivity::onExit() {
+  Activity::onExit();
+
+  cards.close();
 };
 
 void FlashcardsReviewActivity::render(RenderLock&&) {
@@ -39,10 +47,10 @@ void FlashcardsReviewActivity::renderCard() {
   std::string text;
   switch (side) {
     case FRONT:
-      text = card.front;
+      text = cards.currentCard.front;
       break;
     case BACK:
-      text = card.back;
+      text = cards.currentCard.back;
       break;
   }
 
@@ -67,16 +75,16 @@ void FlashcardsReviewActivity::loop() {
   } else if (side == BACK) {
     switch (pressedButton) {
       case HalGPIO::BTN_BACK:
-        rate(AGAIN);
+        grade(FSRS::AGAIN);
         break;
       case HalGPIO::BTN_CONFIRM:
-        rate(HARD);
+        grade(FSRS::HARD);
         break;
       case HalGPIO::BTN_LEFT:
-        rate(AGAIN);
+        grade(FSRS::GOOD);
         break;
       case HalGPIO::BTN_RIGHT:
-        rate(EASY);
+        grade(FSRS::EASY);
         break;
       default:
         return;
@@ -84,8 +92,9 @@ void FlashcardsReviewActivity::loop() {
   }
 }
 
-void FlashcardsReviewActivity::rate(Rating rating) {
-  LOG_DBG("FLASHCARDS", "Card rated %d", rating);
+void FlashcardsReviewActivity::grade(FSRS::Grade g) {
+  LOG_DBG("FLASHCARDS", "Card graded %d", g);
+  cards.grade(g);
   side = FRONT;
   requestUpdateAndWait();
 }
