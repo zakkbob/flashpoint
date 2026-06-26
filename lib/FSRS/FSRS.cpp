@@ -70,7 +70,6 @@ void Scheduler::review(float& s, float& d, unsigned long millisSince, bool isFir
 
   // Difficulty
   if (isFirst) {
-    LOG_DBG("FLASHCARDS", "first review");
     d = w[4] - std::expf(w[5] * (g - 1)) + 1;
   } else {
     auto dDelta = -w[4] * (g - 3);

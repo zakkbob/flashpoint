@@ -8,8 +8,8 @@ class Scheduler {
                  1.4835, 0.0614, 0.2629, 1.6483, 0.6014, 1.8729, 0.5425, 0.0912, 0.0658, 0.1542};  // Parameters
   float dr;                                                                                        // Desired Retention
 
-  void review(Memory& c, Grade g);
-  float getInterval(Memory c);
+  void review(float& s, float& d, unsigned long millisSince, bool isFirst, bool isSameDay, Grade g);
+  float getInterval(float s);
 
   Scheduler(float dr = 0.9) : dr(dr) {};
 };
