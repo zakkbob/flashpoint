@@ -4,7 +4,7 @@
 
 #include <string>
 
-#include "CardStore.h"
+#include "MemoryCardStore.h"
 #include "activities/Activity.h"
 
 enum Side : int { FRONT, BACK };
@@ -12,9 +12,9 @@ enum Side : int { FRONT, BACK };
 class FlashcardsReviewActivity final : public Activity {
  private:
   Side side = FRONT;
-  CardStore cards;
+  MemoryCardStore cards;
 
-  void grade(FSRS::Grade);
+  void grade(Grade);
 
   void renderCard();
   void drawButtonHints();

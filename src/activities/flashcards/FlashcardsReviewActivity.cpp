@@ -65,7 +65,7 @@ void FlashcardsReviewActivity::loop() {
       case HalGPIO::BTN_BACK:
         onGoHome();
         return;
-      case HalGPIO::BTN_RIGHT:
+      case HalGPIO::BTN_CONFIRM:
         side = BACK;
         requestUpdateAndWait();
         break;
@@ -75,16 +75,16 @@ void FlashcardsReviewActivity::loop() {
   } else if (side == BACK) {
     switch (pressedButton) {
       case HalGPIO::BTN_BACK:
-        grade(FSRS::AGAIN);
+        grade(AGAIN);
         break;
       case HalGPIO::BTN_CONFIRM:
-        grade(FSRS::HARD);
+        grade(HARD);
         break;
       case HalGPIO::BTN_LEFT:
-        grade(FSRS::GOOD);
+        grade(GOOD);
         break;
       case HalGPIO::BTN_RIGHT:
-        grade(FSRS::EASY);
+        grade(EASY);
         break;
       default:
         return;
@@ -92,7 +92,7 @@ void FlashcardsReviewActivity::loop() {
   }
 }
 
-void FlashcardsReviewActivity::grade(FSRS::Grade g) {
+void FlashcardsReviewActivity::grade(Grade g) {
   LOG_DBG("FLASHCARDS", "Card graded %d", g);
   cards.grade(g);
   side = FRONT;
