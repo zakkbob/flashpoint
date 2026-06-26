@@ -12,6 +12,6 @@ class MemoryCardStore : public CardStore {
  public:
   void open() override;
   void close() override {};
-  void grade(Grade g) override;  // Grade current card, move on to next
+  bool grade(Grade g) override;  // Grade current card, move on to next
   void undo() override;          // Returns to previous flashcard
 };

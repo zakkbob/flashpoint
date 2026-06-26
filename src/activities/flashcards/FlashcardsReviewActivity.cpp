@@ -9,6 +9,11 @@
 #include "fontIds.h"
 
 void FlashcardsReviewActivity::drawButtonHints() {
+  if (finished) {
+    GUI.drawButtonHints(renderer, tr(STR_BACK), "", "", "", true);
+    return;
+  }
+
   switch (side) {
     case FRONT:
       GUI.drawButtonHints(renderer, tr(STR_BACK), tr(STR_SHOW), "", "", true);
@@ -35,7 +40,12 @@ void FlashcardsReviewActivity::onExit() {
 void FlashcardsReviewActivity::render(RenderLock&&) {
   renderer.clearScreen();
 
-  renderCard();
+  if (finished) {
+    renderFinishScreen();
+  } else {
+    renderCard();
+  }
+
   drawButtonHints();
 
   renderer.displayBuffer();
@@ -54,7 +64,14 @@ void FlashcardsReviewActivity::renderCard() {
       break;
   }
 
-  renderer.drawCenteredText(SMALL_FONT_ID, pageHeight / 2, text.c_str());
+  renderer.drawCenteredText(UI_10_FONT_ID, pageHeight / 2, text.c_str());
+}
+
+void FlashcardsReviewActivity::renderFinishScreen() {
+  const auto pageHeight = renderer.getScreenHeight();
+
+  renderer.drawCenteredText(UI_10_FONT_ID, pageHeight / 2 - 16, "No more cards left");
+  renderer.drawCenteredText(UI_10_FONT_ID, pageHeight / 2 + 16, "Well done!");
 }
 
 void FlashcardsReviewActivity::loop() {
@@ -94,7 +111,7 @@ void FlashcardsReviewActivity::loop() {
 
 void FlashcardsReviewActivity::grade(Grade g) {
   LOG_DBG("FLASHCARDS", "Card graded %d", g);
-  cards.grade(g);
+  finished = !cards.grade(g);
   side = FRONT;
   requestUpdateAndWait();
 }

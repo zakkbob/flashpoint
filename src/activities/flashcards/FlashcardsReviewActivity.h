@@ -13,10 +13,11 @@ class FlashcardsReviewActivity final : public Activity {
  private:
   Side side = FRONT;
   MemoryCardStore cards;
+  bool finished = false;
 
   void grade(Grade);
-
   void renderCard();
+  void renderFinishScreen();
   void drawButtonHints();
 
  public:

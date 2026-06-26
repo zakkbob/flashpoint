@@ -3,20 +3,22 @@
 #include <FSRS.h>
 
 void MemoryCardStore::open() {
-  cards.push_back(CardContents{"How many legs does a cat have?", "4"});
-  cards.push_back(CardContents{"How many legs does a human have?", "2"});
+  cards.push_back(CardContents{"Who founded Hack Club?", "Zach Latta"});
+  cards.push_back(CardContents{"4 * 8 = ?", "32"});
+  cards.push_back(CardContents{"How many moons does Earth have?", "1"});
 
   currentCard = cards[i];
 }
 
-void MemoryCardStore::grade(Grade g) {
-  i++;
-  i %= cards.size();
-  currentCard = cards[i];
+bool MemoryCardStore::grade(Grade g) {
+  if (i >= cards.size() - 1) {
+    return false;
+  }
+  currentCard = cards[++i];
+  return true;
 }
 
 void MemoryCardStore::undo() {
-  i--;
-  i %= cards.size();
+  i = --i % cards.size();
   currentCard = cards[i];
 }
