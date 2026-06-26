@@ -1,45 +1,36 @@
 #include "FSRS.h"
 
-#include <Arduino.h>
-#include <Logging.h>
-
 #include <algorithm>
 #include <cmath>
 
 // Based on https://expertium.github.io/Algorithm.html#intervals
 
-namespace FSRS {
-
-void Scheduler::review(Memory& c, Grade g) {
-  const float t = (millis() - c.lastReviewMillis) / (1000 * 60 * 60 * 24);  // convert to days
+void Scheduler::review(float& s, float& d, unsigned long millisSince, bool isFirst, bool isSameDay, Grade g) {
+  const float t = millisSince / (1000 * 60 * 60 * 24);  // convert to days
   const float exponent = -1 / w[19];
   const float factor = std::pow(0.9, exponent) - 1;
-  const float r = std::pow((1 + factor * t / c.s), -w[19]);
-
-  LOG_DBG("FLASHCARDS", "Difficulty: %f", c.d);
-  LOG_DBG("FLASHCARDS", "Stability: %f", c.s);
-  LOG_DBG("FLASHCARDS", "Interval: %f", getInterval(c));
+  const float r = std::pow((1 + factor * t / s), -w[19]);
 
   // Stability
-  if (c.isFirstReview()) {
+  if (isFirst) {
     switch (g) {
       case AGAIN:
-        c.s = w[0];
+        s = w[0];
         break;
       case HARD:
-        c.s = w[1];
+        s = w[1];
         break;
       case GOOD:
-        c.s = w[2];
+        s = w[2];
         break;
       case EASY:
-        c.s = w[3];
+        s = w[3];
         break;
     }
   } else {
-    if (c.isSameDay()) {
-      float fG = std::expf(w[17] * (g - 3 + w[18]));
-      const float fS = std::pow(c.s, -w[19]);
+    if (isSameDay) {
+      const float fG = std::expf(w[17] * (g - 3 + w[18]));
+      const float fS = std::pow(s, -w[19]);
 
       float sInc = fG * fS;
 
@@ -48,20 +39,19 @@ void Scheduler::review(Memory& c, Grade g) {
         sInc = std::max(sInc, 1.0f);
       }
 
-      c.s *= sInc;
-
+      s *= sInc;
     } else {
       if (g == AGAIN) {
-        const auto fD = std::pow(c.d, -w[12]);
-        const auto fS = std::pow(c.s + 1, w[13]) - 1;
+        const auto fD = std::pow(d, -w[12]);
+        const auto fS = std::pow(s + 1, w[13]) - 1;
         const auto fR = std::expf(w[14] * (1 - r));
 
         const auto newS = w[11] * fD * fS * fR;
 
-        c.s = std::min(newS, c.s);
+        s = std::min(newS, s);
       } else {
-        const auto fD = 11 - c.d;
-        const auto fS = std::pow(c.s, -w[9]);
+        const auto fD = 11 - d;
+        const auto fS = std::pow(s, -w[9]);
         const auto fR = std::expf(w[10] * (1 - r)) - 1;
 
         float mul;
@@ -73,36 +63,28 @@ void Scheduler::review(Memory& c, Grade g) {
         }
 
         const auto sInc = 1 + mul * fD * fS * fR;
-        c.s *= sInc;
+        s *= sInc;
       }
     }
   }
 
   // Difficulty
-  if (c.isFirstReview()) {
+  if (isFirst) {
     LOG_DBG("FLASHCARDS", "first review");
-    c.d = w[4] - std::expf(w[5] * (g - 1)) + 1;
+    d = w[4] - std::expf(w[5] * (g - 1)) + 1;
   } else {
     auto dDelta = -w[4] * (g - 3);
-    dDelta *= (10 - c.d) / 9;
-    c.d += dDelta;
+    dDelta *= (10 - d) / 9;
+    d += dDelta;
     auto d0 = w[4] - std::expf(w[5] * (4 - 1)) + 1;
-    c.d = w[7] * d0 + (1 - w[7]) * c.d;
+    d = w[7] * d0 + (1 - w[7]) * d;
   }
 
-  c.d = std::clamp(c.d, 1.0f, 10.0f);
-
-  c.reviews++;
-  c.lastReviewMillis = millis();
-
-  LOG_DBG("FLASHCARDS", "Difficulty: %f", c.d);
-  LOG_DBG("FLASHCARDS", "Stability: %f", c.s);
-  LOG_DBG("FLASHCARDS", "Interval: %f", getInterval(c));
+  d = std::clamp(d, 1.0f, 10.0f);
 }
 
-float Scheduler::getInterval(Memory c) {
+float Scheduler::getInterval(float s) {
   const float exponent = -1 / w[20];
   const float factor = std::pow(0.9, exponent) - 1;
-  return (c.s / (factor)) * (std::pow(dr, exponent));
+  return (s / (factor)) * (std::pow(dr, exponent));
 }
-};  // namespace FSRS
