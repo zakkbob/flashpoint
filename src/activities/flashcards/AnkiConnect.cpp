@@ -1,11 +1,18 @@
 #include "AnkiConnect.h"
 
 #include <ArduinoJson.h>
+#include <Logging.h>
 
 #include "network/WifiPowerSaveGuard.h"
 
-bool AnkiConnect::AnkiConnect(const char* url) {
-  config.url = url;
+const int maxBufferLen = 1000;
+
+bool AnkiConnect::init() {
+  esp_http_client_config_t config = {
+      .url = "http://192.168.0.112:8765",
+  };
+
+  // config.url = url;
   client = esp_http_client_init(&config);
 
   LOG_DBG("ANKI_CONNECT", "Using url '%s'", url);
@@ -19,7 +26,7 @@ bool AnkiConnect::AnkiConnect(const char* url) {
   return true;
 }
 
-bool AnkiConnect::get(const char* body, char* buffer, const int maxBufferLen) {
+bool AnkiConnect::get(const char* body, char* buffer, size_t bufferSize) {
   WifiPowerSaveGuard wifiPowerSaveGuard;
   (void)wifiPowerSaveGuard;
 
@@ -40,20 +47,22 @@ bool AnkiConnect::get(const char* body, char* buffer, const int maxBufferLen) {
 
   int contentLength = esp_http_client_fetch_headers(client);
   if (contentLength < 0) {
-    LOG_DBG("ANKI_CONNECT", "Failed to fetch http headers")
+    LOG_DBG("ANKI_CONNECT", "Failed to fetch http headers");
     esp_http_client_close(client);
     return false;
   }
 
-  int dataRead = esp_http_client_read_response(client, buffer, maxBufferLen);
+  int dataRead = esp_http_client_read_response(client, buffer, bufferSize);
   if (dataRead < 0) {
-    LOG_ERR("ANKI_CONNECT", "Failed to read response")
+    LOG_ERR("ANKI_CONNECT", "Failed to read response");
     esp_http_client_close(client);
     return false;
   }
 
   LOG_DBG("ANKI_CONNECT", "HTTP request Status = %d, content_length = %d", esp_http_client_get_status_code(client),
           esp_http_client_get_content_length(client));
+
+  LOG_DBG("ANKI_CONNECT", "%s", buffer);
 
   esp_http_client_close(client);
   return true;
@@ -62,13 +71,13 @@ bool AnkiConnect::get(const char* body, char* buffer, const int maxBufferLen) {
 Response<DeckNames> AnkiConnect::deckNames() {
   JsonDocument doc;
 
-  doc["action"] = "deckNames";
   doc["version"] = 6;
+  doc["action"] = "deckNames";
 
-  std::string body;
+  const char* body;
   serializeJson(doc, body);
 
-  char* res;
+  char res[101];
   if (!get(body.c_str(), res, 100)) {
     return false;
   }
@@ -76,10 +85,12 @@ Response<DeckNames> AnkiConnect::deckNames() {
   deserializeJson(doc, res);
 
   JsonArray result = doc["result"].as<JsonArray>();
-  DeckNames deckNames(result.size());
+  DeckNames deckNames;
 
   for (JsonVariant v : result) {
-    deckNames.push_back(v.as<std::string>())
+    const char* deckName = v.as<const char*>();
+    LOG_DBG("ANKI_CONNECT", "deck name: %s", deckName);
+    deckNames.push_back(deckName);
   }
 
   return deckNames;

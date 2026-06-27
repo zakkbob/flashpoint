@@ -4,7 +4,12 @@
 #include <GfxRenderer.h>
 #include <HalGPIO.h>
 #include <I18n.h>
+#include <WiFi.h>
+#include <esp_http_client.h>
+#include <network/WifiPowerSaveGuard.h>
 
+#include "AnkiConnect.h"
+#include "activities/network/WifiSelectionActivity.h"
 #include "components/UITheme.h"
 #include "fontIds.h"
 
@@ -29,7 +34,22 @@ void FlashcardsReviewActivity::onEnter() {
 
   cards.open();
   requestUpdate();
-};
+
+  WiFi.mode(WIFI_STA);
+  startActivityForResult(std::make_unique<WifiSelectionActivity>(renderer, mappedInput),
+                         [this](const ActivityResult& result) { onWifiSelectionComplete(!result.isCancelled); });
+}
+
+void FlashcardsReviewActivity::onWifiSelectionComplete(const bool success) {
+  AnkiConnect anki("http://192.168.0.112:8765");
+  anki.init();
+
+  auto deckNames = anki.deckNames();
+  if (!deckNames) {
+    LOG_ERR("ANKI", "Failed to get deck names");
+    return;
+  }
+}
 
 void FlashcardsReviewActivity::onExit() {
   Activity::onExit();

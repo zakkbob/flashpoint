@@ -19,6 +19,7 @@ class FlashcardsReviewActivity final : public Activity {
   void renderCard();
   void renderFinishScreen();
   void drawButtonHints();
+  void onWifiSelectionComplete(const bool success);
 
  public:
   FlashcardsReviewActivity(GfxRenderer& renderer, MappedInputManager& mappedInput)
