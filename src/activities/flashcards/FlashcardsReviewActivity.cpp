@@ -41,13 +41,25 @@ void FlashcardsReviewActivity::onEnter() {
 }
 
 void FlashcardsReviewActivity::onWifiSelectionComplete(const bool success) {
-  AnkiConnect anki("http://192.168.0.112:8765");
+  AnkiConnect anki("http://192.168.1.187:8765");
   anki.init();
 
   auto deckNames = anki.deckNames();
   if (!deckNames) {
     LOG_ERR("ANKI", "Failed to get deck names");
     return;
+  }
+  for (std::string deck : deckNames.val) {
+    LOG_DBG("ANKI", "deck: %s", deck.c_str());
+  }
+
+  auto decks = anki.deckNamesAndIds();
+  if (!decks) {
+    LOG_ERR("ANKI", "Failed to get deck names and ids");
+    return;
+  }
+  for (Deck deck : decks.val) {
+    LOG_DBG("ANKI", "deck; name = %s, id = %d", deck.name.c_str(), deck.id);
   }
 }
 

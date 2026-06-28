@@ -8,11 +8,6 @@
 const int maxBufferLen = 1000;
 
 bool AnkiConnect::init() {
-  esp_http_client_config_t config = {
-      .url = "http://192.168.0.112:8765",
-  };
-
-  // config.url = url;
   client = esp_http_client_init(&config);
 
   LOG_DBG("ANKI_CONNECT", "Using url '%s'", url);
@@ -68,30 +63,59 @@ bool AnkiConnect::get(const char* body, char* buffer, size_t bufferSize) {
   return true;
 }
 
-Response<DeckNames> AnkiConnect::deckNames() {
+template <typename T, typename R>
+Response<T> AnkiConnect::performRequest(std::string action, R handleResult) {
+  return performRequest<T>(action, [](JsonVariant) {}, handleResult);
+}
+
+template <typename T, typename B, typename R>
+Response<T> AnkiConnect::performRequest(std::string action, B fillParams, R handleResult) {
   JsonDocument doc;
 
   doc["version"] = 6;
-  doc["action"] = "deckNames";
+  doc["action"] = action;
+  fillParams(doc["params"]);
 
-  const char* body;
+  std::string body;
   serializeJson(doc, body);
 
-  char res[101];
-  if (!get(body.c_str(), res, 100)) {
+  size_t bufferSize = 100;
+  char res[bufferSize + 1];
+
+  if (!get(body.c_str(), res, bufferSize)) {
     return false;
   }
 
   deserializeJson(doc, res);
 
-  JsonArray result = doc["result"].as<JsonArray>();
-  DeckNames deckNames;
-
-  for (JsonVariant v : result) {
-    const char* deckName = v.as<const char*>();
-    LOG_DBG("ANKI_CONNECT", "deck name: %s", deckName);
-    deckNames.push_back(deckName);
+  if (doc["error"]) {
+    return false;
   }
 
-  return deckNames;
+  return handleResult(doc["result"]);
+}
+
+Response<std::vector<std::string>> AnkiConnect::deckNames() {
+  return performRequest<std::vector<std::string>>("deckNames", [](JsonVariant result) {
+    std::vector<std::string> deckNames;
+
+    for (JsonVariant v : result.as<JsonArray>()) {
+      const char* deckName = v.as<const char*>();
+      deckNames.push_back(deckName);
+    }
+
+    return deckNames;
+  });
+}
+
+Response<std::vector<Deck>> AnkiConnect::deckNamesAndIds() {
+  return performRequest<std::vector<Deck>>("deckNamesAndIds", [](JsonVariant result) {
+    std::vector<Deck> decks;
+
+    for (JsonPair kv : result.as<JsonObject>()) {
+      decks.push_back(Deck{.id = kv.value().as<int>(), .name = kv.key().c_str()});
+    }
+
+    return decks;
+  });
 }
