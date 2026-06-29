@@ -57,8 +57,6 @@ bool AnkiConnect::get(const char* body, char* buffer, size_t bufferSize) {
   LOG_DBG("ANKI_CONNECT", "HTTP request Status = %d, content_length = %d", esp_http_client_get_status_code(client),
           esp_http_client_get_content_length(client));
 
-  LOG_DBG("ANKI_CONNECT", "%s", buffer);
-
   esp_http_client_close(client);
   return true;
 }
@@ -74,21 +72,26 @@ Response<T> AnkiConnect::performRequest(std::string action, B fillParams, R hand
 
   doc["version"] = 6;
   doc["action"] = action;
-  fillParams(doc["params"]);
+  fillParams(doc["params"].to<JsonObject>());
 
   std::string body;
   serializeJson(doc, body);
 
-  size_t bufferSize = 100;
+  size_t bufferSize = 1500;
   char res[bufferSize + 1];
 
   if (!get(body.c_str(), res, bufferSize)) {
     return false;
   }
 
-  deserializeJson(doc, res);
+  auto err = deserializeJson(doc, res);
+  if (err != DeserializationError::Ok) {
+    LOG_ERR("ANKI_CONNECT", "Failed to deserialise JSON: %d", err);
+    return false;
+  }
 
   if (doc["error"]) {
+    LOG_DBG("ANKI_CONNECT", "API response contained error");
     return false;
   }
 
@@ -118,4 +121,46 @@ Response<std::vector<Deck>> AnkiConnect::deckNamesAndIds() {
 
     return decks;
   });
+}
+
+Response<std::vector<CardInfo>> AnkiConnect::cardsByIds(std::vector<long long int> ids) {
+  return performRequest<std::vector<CardInfo>>(
+      "cardsInfo",
+      [ids](JsonVariant params) {
+        auto cards = params["cards"].to<JsonArray>();
+
+        for (auto id : ids) {
+          cards.add(id);
+        }
+      },
+      [](JsonVariant result) {
+        std::vector<CardInfo> cards;
+
+        for (JsonObject o : result.as<JsonArray>()) {
+          cards.push_back(CardInfo{.id = o["cardId"],
+                                   .type = o["type"],
+                                   .question = o["fields"]["Front"]["value"],
+                                   .answer = o["fields"]["Back"]["value"]});
+        }
+
+        return cards;
+      });
+}
+
+Response<std::vector<long long>> AnkiConnect::cardIdsByDeckName(std::string deckName) {
+  return performRequest<std::vector<long long>>(
+      "findCards",
+      [deckName](JsonVariant params) {
+        std::string query = "deck:" + deckName;
+        params["query"] = query;
+      },
+      [](JsonVariant result) {
+        std::vector<long long> ids;
+
+        for (JsonVariant v : result.as<JsonArray>()) {
+          ids.push_back(v.as<long long>());
+        }
+
+        return ids;
+      });
 }

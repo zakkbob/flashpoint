@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+#include "CardType.h"
+
 // Interface to interact with the anki-connect plugin for Anki
 
 template <class T>
@@ -17,6 +19,13 @@ struct Response {
   Response(T val) : val(val) {};
 
   explicit operator bool() const { return !error; };
+};
+
+struct CardInfo {
+  long long id;
+  CardType type;
+  std::string question;
+  std::string answer;
 };
 
 struct Deck {
@@ -43,6 +52,8 @@ class AnkiConnect {
 
   Response<std::vector<std::string>> deckNames();
   Response<std::vector<Deck>> deckNamesAndIds();
+  Response<std::vector<CardInfo>> cardsByIds(std::vector<long long int> ids);
+  Response<std::vector<long long>> cardIdsByDeckName(std::string deckName);
 
   template <typename T, typename R>
   Response<T> performRequest(std::string action, R handleResult);

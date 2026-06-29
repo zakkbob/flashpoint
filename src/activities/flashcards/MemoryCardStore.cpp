@@ -22,3 +22,5 @@ void MemoryCardStore::undo() {
   i = --i % cards.size();
   currentCard = cards[i];
 }
+
+void MemoryCardStore::add(std::string question, std::string answer) { cards.push_back(CardContents{question, answer}); }

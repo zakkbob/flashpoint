@@ -6,8 +6,6 @@
 #include <string>
 #include <vector>
 
-enum CardType : int { New = 0, Learning, Review };
-
 struct CardContents {
   std::string front;
   std::string back;
@@ -24,4 +22,5 @@ class CardStore {
   virtual bool grade(
       Grade g) = 0;         // Grade current card, move on to next. Returns true if there's another card, false if not
   virtual void undo() = 0;  // Returns to previous flashcard
+  virtual void add(std::string question, std::string answer) = 0;
 };
