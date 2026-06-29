@@ -12,6 +12,7 @@ class MemoryCardStore : public CardStore {
  public:
   void open() override;
   void close() override {};
+  bool empty() override;
   bool grade(Grade g) override;  // Grade current card, move on to next
   void undo() override;          // Returns to previous flashcard
   void add(std::string question, std::string answer) override;

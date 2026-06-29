@@ -51,13 +51,17 @@ void FlashcardsReviewActivity::onWifiSelectionComplete(const bool success) {
   }
   for (auto deck : deckNames.val) {
     auto ids = anki.cardIdsByDeckName(deck);
-    auto c = anki.cardsByIds(ids.val);
-    for (auto card : c.val) {
-      LOG_DBG("ANKI", "Receieved card; id - %lld, question - %s, answer - %s", card.id, card.question.c_str(),
-              card.answer.c_str());
-      cards.add(card.question, card.answer);
+    LOG_DBG("ANKI", "Deck %s has %d cards", deck.c_str(), ids.val.size());
+
+    for (auto id : ids.val) {
+      auto card = anki.cardById(id);
+      LOG_DBG("ANKI", "Receieved card; id - %lld, question - %s, answer - %s", card.val.id, card.val.question.c_str(),
+              card.val.answer.c_str());
+      cards.add(card.val.question, card.val.answer);
     }
   }
+
+  finished = cards.empty();
 }
 
 void FlashcardsReviewActivity::onExit() {
@@ -76,7 +80,6 @@ void FlashcardsReviewActivity::render(RenderLock&&) {
   }
 
   drawButtonHints();
-
   renderer.displayBuffer();
 }
 

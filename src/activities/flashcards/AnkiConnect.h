@@ -53,6 +53,7 @@ class AnkiConnect {
   Response<std::vector<std::string>> deckNames();
   Response<std::vector<Deck>> deckNamesAndIds();
   Response<std::vector<CardInfo>> cardsByIds(std::vector<long long int> ids);
+  Response<CardInfo> cardById(long long id);
   Response<std::vector<long long>> cardIdsByDeckName(std::string deckName);
 
   template <typename T, typename R>

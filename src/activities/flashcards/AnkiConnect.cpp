@@ -123,7 +123,25 @@ Response<std::vector<Deck>> AnkiConnect::deckNamesAndIds() {
   });
 }
 
-Response<std::vector<CardInfo>> AnkiConnect::cardsByIds(std::vector<long long int> ids) {
+Response<CardInfo> AnkiConnect::cardById(long long id) {
+  return performRequest<CardInfo>(
+      "cardsInfo",
+      [id](JsonVariant params) {
+        auto cards = params["cards"].to<JsonArray>();
+
+        cards.add(id);
+      },
+      [](JsonVariant result) {
+        auto card = result[0].as<JsonObject>();
+
+        return CardInfo{.id = card["cardId"],
+                        .type = card["type"],
+                        .question = card["fields"]["Front"]["value"],
+                        .answer = card["fields"]["Back"]["value"]};
+      });
+}
+
+Response<std::vector<CardInfo>> AnkiConnect::cardsByIds(std::vector<long long> ids) {
   return performRequest<std::vector<CardInfo>>(
       "cardsInfo",
       [ids](JsonVariant params) {
