@@ -5,8 +5,6 @@
 
 #include "network/WifiPowerSaveGuard.h"
 
-const int maxBufferLen = 1000;
-
 bool AnkiConnect::init() {
   client = esp_http_client_init(&config);
 
@@ -32,6 +30,8 @@ bool AnkiConnect::get(const char* body, char* buffer, size_t bufferSize) {
     esp_http_client_close(client);
     return false;
   }
+
+  LOG_DBG("ANKI_CONNECT", "HTTP request body = %s", body);
 
   int len = esp_http_client_write(client, body, strlen(body));
   if (len == -1) {
@@ -77,7 +77,7 @@ Response<T> AnkiConnect::performRequest(std::string action, B fillParams, R hand
   std::string body;
   serializeJson(doc, body);
 
-  size_t bufferSize = 1500;
+  size_t bufferSize = 4000;
   char res[bufferSize + 1];
 
   if (!get(body.c_str(), res, bufferSize)) {

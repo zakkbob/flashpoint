@@ -1,19 +1,14 @@
-#include "FlashcardsReviewActivity.h"
+#include "FlashcardReviewActivity.h"
 
 #include <FSRS.h>
 #include <GfxRenderer.h>
 #include <HalGPIO.h>
 #include <I18n.h>
-#include <WiFi.h>
-#include <esp_http_client.h>
-#include <network/WifiPowerSaveGuard.h>
 
-#include "AnkiConnect.h"
-#include "activities/network/WifiSelectionActivity.h"
 #include "components/UITheme.h"
 #include "fontIds.h"
 
-void FlashcardsReviewActivity::drawButtonHints() {
+void FlashcardReviewActivity::drawButtonHints() {
   if (finished) {
     GUI.drawButtonHints(renderer, tr(STR_BACK), "", "", "", true);
     return;
@@ -29,48 +24,19 @@ void FlashcardsReviewActivity::drawButtonHints() {
   }
 }
 
-void FlashcardsReviewActivity::onEnter() {
+void FlashcardReviewActivity::onEnter() {
   Activity::onEnter();
 
-  cards.open();
   requestUpdate();
-
-  WiFi.mode(WIFI_STA);
-  startActivityForResult(std::make_unique<WifiSelectionActivity>(renderer, mappedInput),
-                         [this](const ActivityResult& result) { onWifiSelectionComplete(!result.isCancelled); });
 }
 
-void FlashcardsReviewActivity::onWifiSelectionComplete(const bool success) {
-  AnkiConnect anki("http://192.168.0.8:8765");
-  anki.init();
-
-  auto deckNames = anki.deckNames();
-  if (!deckNames) {
-    LOG_ERR("ANKI", "Failed to get deck names");
-    return;
-  }
-  for (auto deck : deckNames.val) {
-    auto ids = anki.cardIdsByDeckName(deck);
-    LOG_DBG("ANKI", "Deck %s has %d cards", deck.c_str(), ids.val.size());
-
-    for (auto id : ids.val) {
-      auto card = anki.cardById(id);
-      LOG_DBG("ANKI", "Receieved card; id - %lld, question - %s, answer - %s", card.val.id, card.val.question.c_str(),
-              card.val.answer.c_str());
-      cards.add(card.val.question, card.val.answer);
-    }
-  }
-
-  finished = cards.empty();
-}
-
-void FlashcardsReviewActivity::onExit() {
+void FlashcardReviewActivity::onExit() {
   Activity::onExit();
 
   cards.close();
 };
 
-void FlashcardsReviewActivity::render(RenderLock&&) {
+void FlashcardReviewActivity::render(RenderLock&&) {
   renderer.clearScreen();
 
   if (finished) {
@@ -83,7 +49,7 @@ void FlashcardsReviewActivity::render(RenderLock&&) {
   renderer.displayBuffer();
 }
 
-void FlashcardsReviewActivity::renderCard() {
+void FlashcardReviewActivity::renderCard() {
   const auto pageHeight = renderer.getScreenHeight();
 
   std::string text;
@@ -99,20 +65,20 @@ void FlashcardsReviewActivity::renderCard() {
   renderer.drawCenteredText(UI_10_FONT_ID, pageHeight / 2, text.c_str());
 }
 
-void FlashcardsReviewActivity::renderFinishScreen() {
+void FlashcardReviewActivity::renderFinishScreen() {
   const auto pageHeight = renderer.getScreenHeight();
 
   renderer.drawCenteredText(UI_10_FONT_ID, pageHeight / 2 - 16, "No more cards left");
   renderer.drawCenteredText(UI_10_FONT_ID, pageHeight / 2 + 16, "Well done!");
 }
 
-void FlashcardsReviewActivity::loop() {
+void FlashcardReviewActivity::loop() {
   const int pressedButton = mappedInput.getPressedFrontButton();
 
   if (side == FRONT) {
     switch (pressedButton) {
       case HalGPIO::BTN_BACK:
-        onGoHome();
+        finish();
         return;
       case HalGPIO::BTN_CONFIRM:
         side = BACK;
@@ -141,7 +107,7 @@ void FlashcardsReviewActivity::loop() {
   }
 }
 
-void FlashcardsReviewActivity::grade(Grade g) {
+void FlashcardReviewActivity::grade(Grade g) {
   LOG_DBG("FLASHCARDS", "Card graded %d", g);
   finished = !cards.grade(g);
   side = FRONT;
