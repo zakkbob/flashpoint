@@ -12,8 +12,12 @@ enum Side : int { FRONT, BACK };
 class FlashcardReviewActivity final : public Activity {
  private:
   CardStore& cards;
-  Side side = FRONT;
+  long long deckId;
+  std::vector<CardParams> due;
+  int i;
   bool finished = false;
+  Side side = FRONT;
+  Scheduler scheduler;
 
   void grade(Grade);
   void renderCard();
@@ -21,8 +25,14 @@ class FlashcardReviewActivity final : public Activity {
   void drawButtonHints();
 
  public:
-  FlashcardReviewActivity(GfxRenderer& renderer, MappedInputManager& mappedInput, CardStore& cards)
-      : Activity("FlashcardReview", renderer, mappedInput), cards(cards) {};
+  FlashcardReviewActivity(GfxRenderer& renderer, MappedInputManager& mappedInput, CardStore& cards,
+                          Scheduler& scheduler, long long deckId)
+      : Activity("FlashcardReview", renderer, mappedInput),
+        cards(cards),
+        scheduler(scheduler),
+        deckId(deckId),
+        due(cards.cardParamsByDeckId(deckId)),
+        finished(due.size() == 0) {};
 
   void onEnter() override;
   void onExit() override;

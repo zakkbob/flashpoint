@@ -99,10 +99,11 @@ void FlashcardsActivity::loop() {
 void FlashcardsActivity::enterSelectedActivity() {
   switch (currentTab) {
     case DecksTab:
-      activityManager.replaceActivity(std::make_unique<FlashcardReviewActivity>(renderer, mappedInput, cards));
+      activityManager.pushActivity(
+          std::make_unique<FlashcardReviewActivity>(renderer, mappedInput, cards, scheduler, 0));
       break;
     case SyncTab:
-      activityManager.replaceActivity(std::make_unique<FlashcardSyncActivity>(renderer, mappedInput, cards));
+      activityManager.pushActivity(std::make_unique<FlashcardSyncActivity>(renderer, mappedInput, cards));
       break;
   }
 }

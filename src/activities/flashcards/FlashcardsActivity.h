@@ -17,12 +17,13 @@ class FlashcardsActivity final : public Activity {
   int currentTab = DecksTab;
   std::vector<TabInfo> tabs;
   MemoryCardStore cards;
+  Scheduler scheduler;
 
   void enterSelectedActivity();
 
  public:
   FlashcardsActivity(GfxRenderer& renderer, MappedInputManager& mappedInput)
-      : Activity("Flashcards", renderer, mappedInput) {
+      : Activity("Flashcards", renderer, mappedInput), scheduler{} {
     tabs.reserve(tabCount);
     tabs.push_back({tr(STR_FLASHCARDS_DECKS), false});
     tabs.push_back({tr(STR_SYNC), false});

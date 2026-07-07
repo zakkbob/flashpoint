@@ -51,14 +51,15 @@ void FlashcardReviewActivity::render(RenderLock&&) {
 
 void FlashcardReviewActivity::renderCard() {
   const auto pageHeight = renderer.getScreenHeight();
+  const auto card = cards.cardContents(due[i].id);
 
   std::string text;
   switch (side) {
     case FRONT:
-      text = cards.currentCard.front;
+      text = card.question;
       break;
     case BACK:
-      text = cards.currentCard.back;
+      text = card.answer;
       break;
   }
 
@@ -109,7 +110,15 @@ void FlashcardReviewActivity::loop() {
 
 void FlashcardReviewActivity::grade(Grade g) {
   LOG_DBG("FLASHCARDS", "Card graded %d", g);
-  finished = !cards.grade(g);
+
+  auto card = due[i];
+  scheduler.review(card.stability, card.difficulty, 0, card.lastReview == 0, scheduler.getInterval(card.stability) < 0,
+                   g);  // FIX: hard-coded placeholders
+  cards.addReview(0, card.id, g, 0);
+  cards.updateCardParams(card.id, card.stability, card.difficulty);
+
+  finished = ++i >= due.size();
   side = FRONT;
+
   requestUpdateAndWait();
 }

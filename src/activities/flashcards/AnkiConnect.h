@@ -29,7 +29,7 @@ struct CardInfo {
 };
 
 struct Deck {
-  int id;
+  long long id;
   std::string name;
 };
 
