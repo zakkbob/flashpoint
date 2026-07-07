@@ -30,7 +30,7 @@ void FlashcardSyncActivity::render(RenderLock&&) {
 void FlashcardSyncActivity::onWifiSelectionComplete(const bool success) {
   requestUpdateAndWait();
 
-  AnkiConnect anki("http://192.168.0.8:8765");
+  AnkiConnect anki("http://192.168.0.112:8765");  // FIXME: hard-coded
   anki.init();
 
   auto decks = anki.deckNamesAndIds();
