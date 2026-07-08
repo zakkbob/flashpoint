@@ -139,7 +139,8 @@ CardContents MemoryCardStore::cardContents(long long id) {
     }
   }
 
-  LOG_ERR("FLASHCARDS", "Attempted to access non-existent card with ID %lld", id);
+  LOG_ERR("FLASHCARDS", "Attempted to access card with ID %lld", id);
+  logSerial.flush();
   assert(false);  // FIXME: Implement proper fallback
 }
 
@@ -152,6 +153,7 @@ CardParams MemoryCardStore::cardParams(long long id) {
     }
   }
 
-  LOG_ERR("FLASHCARDS", "Attempted to access non-existent card with ID %lld", id);
+  LOG_ERR("FLASHCARDS", "Attempted to access card with ID %lld", id);
+  logSerial.flush();
   assert(false);  // FIXME: Implement proper fallback
 }

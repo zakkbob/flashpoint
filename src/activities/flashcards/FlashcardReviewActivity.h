@@ -14,7 +14,7 @@ class FlashcardReviewActivity final : public Activity {
   CardStore& cards;
   long long deckId;
   std::vector<CardParams> due;
-  int i;
+  int i = 0;
   bool finished = false;
   Side side = FRONT;
   Scheduler scheduler;

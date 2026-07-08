@@ -20,36 +20,63 @@ void FlashcardSyncActivity::onEnter() {
 void FlashcardSyncActivity::onExit() { Activity::onExit(); }
 
 void FlashcardSyncActivity::render(RenderLock&&) {
-  const auto pageHeight = renderer.getScreenHeight();
+  renderer.clearScreen();
 
+  const auto pageHeight = renderer.getScreenHeight();
   renderer.drawCenteredText(UI_10_FONT_ID, pageHeight / 2, "Syncing...");  // WARN: Hard-coded text (temporary)
+
+  renderer.displayBuffer();
 
   // TODO: progress stuff
 }
 
+std::string truncate(std::string s, int maxLen) {  // NOTE: where to put this
+  if (s.length() > maxLen) {
+    return s.substr(0, maxLen - 3) + "...";
+  }
+  return s;
+}
+
 void FlashcardSyncActivity::onWifiSelectionComplete(const bool success) {
   requestUpdateAndWait();
+
+  LOG_INF("FlashcardSync", "Beginning sync");
 
   AnkiConnect anki("http://192.168.0.112:8765");  // FIXME: hard-coded
   anki.init();
 
   auto decks = anki.deckNamesAndIds();
   if (!decks) {
-    LOG_ERR("ANKI", "Failed to get deck names");
+    LOG_ERR("FlashcardSync", "Failed to get decks");
     return;
   }
 
   for (auto deck : decks.val) {
+    cards.addDeck(deck.id, deck.name);
+
     auto cardIds = anki.cardIdsByDeckName(deck.name);
-    LOG_DBG("ANKI", "Deck %s has %d cards", deck.name.c_str(), cardIds.val.size());
+    if (!cardIds) {
+      LOG_DBG("FlashcardSync", "New deck; (%lld) %s", deck.id, truncate(deck.name, 50).c_str());
+      LOG_ERR("FlashcardSync", "Failed to get cards in deck %s (%lld)", truncate(deck.name, 50).c_str(), deck.id);
+      continue;
+    }
+
+    LOG_DBG("FlashcardSync", "New deck; (%lld) %s, %d cards", deck.id, truncate(deck.name, 50).c_str(),
+            cardIds.val.size());
 
     for (auto cardId : cardIds.val) {
       auto card = anki.cardById(cardId);
-      LOG_DBG("ANKI", "Receieved card; id - %lld, question - %s, answer - %s", card.val.id, card.val.question.c_str(),
-              card.val.answer.c_str());
+      if (!card) {
+        LOG_ERR("FlashcardSync", "Failed to get card %lld", cardId);
+        continue;
+      }
+      LOG_DBG("FlashcardSync", "New card; (%lld) %s | %s", card.val.id, truncate(card.val.question, 50).c_str(),
+              truncate(card.val.answer, 50).c_str());
       cards.addCard(card.val.id, deck.id, card.val.question, card.val.answer);
     }
   }
+
+  LOG_INF("FlashcardSync", "Sync complete");
 
   finish();
 }
