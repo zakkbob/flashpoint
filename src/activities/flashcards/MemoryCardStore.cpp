@@ -1,9 +1,10 @@
 #include "MemoryCardStore.h"
 
-#include <FSRS.h>
 #include <Logging.h>
 
 #include <string>
+
+#include "CardType.h"
 
 bool MemoryCardStore::reviewExists(long long id) {
   for (int i = 0; i < reviews.size(); i++) {

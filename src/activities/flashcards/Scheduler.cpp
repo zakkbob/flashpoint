@@ -1,11 +1,27 @@
-#include "FSRS.h"
+#include "Scheduler.h"
 
 #include <algorithm>
 #include <cmath>
 
-// Based on https://expertium.github.io/Algorithm.html#intervals
+void Scheduler::grade(Grade g) {
+  float s = due[i].stability;
+  float d = due[i].difficulty;
+  auto lastReview = due[i].lastReview;
+  auto now = lastReview + 1000 * 60 * 5;  // FIXME: aghh, we need time
+  review(s, d, g, now - lastReview, lastReview == 0, true);
+  cards.updateCardParams(due[i].id, s, d);
 
-void Scheduler::review(float& s, float& d, unsigned long millisSince, bool isFirst, bool isSameDay, Grade g) {
+  auto elapsed = millis() - reviewStartTime;
+  cards.addReview(now, due[i].id, g, elapsed);
+
+  finished = ++i >= due.size();
+  resetTimer();
+}
+
+void Scheduler::resetTimer() { reviewStartTime = millis(); }
+
+// Based on https://expertium.github.io/Algorithm.html#intervals
+void Scheduler::review(float& s, float& d, Grade g, unsigned long millisSince, bool isFirst, bool isSameDay) {
   const float t = millisSince / (1000 * 60 * 60 * 24);  // convert to days
   const float exponent = -1 / w[19];
   const float factor = std::pow(0.9, exponent) - 1;
@@ -82,7 +98,8 @@ void Scheduler::review(float& s, float& d, unsigned long millisSince, bool isFir
   d = std::clamp(d, 1.0f, 10.0f);
 }
 
-float Scheduler::getInterval(float s) {
+float Scheduler::interval() {
+  float s = due[i].stability;
   const float exponent = -1 / w[20];
   const float factor = std::pow(0.9, exponent) - 1;
   return (s / (factor)) * (std::pow(dr, exponent));

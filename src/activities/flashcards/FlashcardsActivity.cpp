@@ -3,8 +3,10 @@
 #include <GfxRenderer.h>
 #include <I18n.h>
 
+#include "CardType.h"
 #include "FlashcardReviewActivity.h"
 #include "FlashcardSyncActivity.h"
+#include "Scheduler.h"
 #include "activities/Activity.h"
 #include "activities/ActivityManager.h"
 #include "components/UITheme.h"
@@ -98,10 +100,11 @@ void FlashcardsActivity::loop() {
 
 void FlashcardsActivity::enterSelectedActivity() {
   switch (currentTab) {
-    case DecksTab:
-      activityManager.pushActivity(
-          std::make_unique<FlashcardReviewActivity>(renderer, mappedInput, cards, scheduler, 0));
+    case DecksTab: {
+      Scheduler scheduler(cards, 1);
+      activityManager.pushActivity(std::make_unique<FlashcardReviewActivity>(renderer, mappedInput, cards, scheduler));
       break;
+    }
     case SyncTab:
       activityManager.pushActivity(std::make_unique<FlashcardSyncActivity>(renderer, mappedInput, cards));
       break;

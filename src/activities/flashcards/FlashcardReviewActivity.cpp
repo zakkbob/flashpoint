@@ -1,15 +1,15 @@
 #include "FlashcardReviewActivity.h"
 
-#include <FSRS.h>
 #include <GfxRenderer.h>
 #include <HalGPIO.h>
 #include <I18n.h>
 
+#include "CardType.h"
 #include "components/UITheme.h"
 #include "fontIds.h"
 
 void FlashcardReviewActivity::drawButtonHints() {
-  if (finished) {
+  if (scheduler.finished) {
     GUI.drawButtonHints(renderer, tr(STR_BACK), "", "", "", true);
     return;
   }
@@ -39,7 +39,7 @@ void FlashcardReviewActivity::onExit() {
 void FlashcardReviewActivity::render(RenderLock&&) {
   renderer.clearScreen();
 
-  if (finished) {
+  if (scheduler.finished) {
     renderFinishScreen();
   } else {
     renderCard();
@@ -47,11 +47,12 @@ void FlashcardReviewActivity::render(RenderLock&&) {
 
   drawButtonHints();
   renderer.displayBuffer();
+  scheduler.resetTimer();
 }
 
 void FlashcardReviewActivity::renderCard() {
   const auto pageHeight = renderer.getScreenHeight();
-  const auto card = cards.cardContents(due[i].id);
+  const auto card = cards.cardContents(scheduler.currentCardId);
 
   std::string text;
   switch (side) {
@@ -83,7 +84,7 @@ void FlashcardReviewActivity::loop() {
         return;
       case HalGPIO::BTN_CONFIRM:
         side = BACK;
-        requestUpdateAndWait();
+        requestUpdate();
         break;
       default:
         return;
@@ -109,16 +110,7 @@ void FlashcardReviewActivity::loop() {
 }
 
 void FlashcardReviewActivity::grade(Grade g) {
-  LOG_DBG("FLASHCARDS", "Card graded %d", g);
-
-  auto card = due[i];
-  scheduler.review(card.stability, card.difficulty, 0, card.lastReview == 0, scheduler.getInterval(card.stability) < 0,
-                   g);  // FIX: hard-coded placeholders
-  cards.addReview(0, card.id, g, 0);
-  cards.updateCardParams(card.id, card.stability, card.difficulty);
-
-  finished = ++i >= due.size();
+  scheduler.grade(g);
   side = FRONT;
-
-  requestUpdateAndWait();
+  requestUpdate();
 }

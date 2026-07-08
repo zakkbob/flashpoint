@@ -135,7 +135,7 @@ Response<CardInfo> AnkiConnect::cardById(long long id) {
         auto card = result[0].as<JsonObject>();
 
         return CardInfo{.id = card["cardId"],
-                        .type = card["type"],
+                        .type = (CardType)card["type"].as<int>(),
                         .question = card["fields"]["Front"]["value"],
                         .answer = card["fields"]["Back"]["value"]};
       });
@@ -156,7 +156,7 @@ Response<std::vector<CardInfo>> AnkiConnect::cardsByIds(std::vector<long long> i
 
         for (JsonObject o : result.as<JsonArray>()) {
           cards.push_back(CardInfo{.id = o["cardId"],
-                                   .type = o["type"],
+                                   .type = (CardType)o["type"].as<int>(),
                                    .question = o["fields"]["Front"]["value"],
                                    .answer = o["fields"]["Back"]["value"]});
         }

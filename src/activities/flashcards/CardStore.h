@@ -1,10 +1,9 @@
 #pragma once
 
-#include <FSRS.h>
-
-#include <map>
 #include <string>
 #include <vector>
+
+#include "CardType.h"
 
 struct Review {
   long long id;
