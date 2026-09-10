@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
+#include <Logging.h>
 
 #include "CardStore.h"
 #include "CardType.h"
@@ -21,14 +22,16 @@ class Scheduler {
   float interval();
 
  public:
-  long long currentCardId;
+  long long currentCardId = 0;
   int newCount = 0;
   int learningCount = 0;
   int reviewCount = 0;
   bool finished;
 
-  Scheduler(CardStore& cards, long long deckId)
-      : cards(cards), deckId(deckId), due(cards.cardParamsByDeckId(deckId)), finished(due.size() == 0) {
+  Scheduler(CardStore& cards, long long deckId) : cards(cards), deckId(deckId) {
+    due = cards.cardParamsByDeckId(deckId);
+    finished = due.size() == 0;
+
     if (!finished) {
       currentCardId = due[i].id;
     }
@@ -36,4 +39,5 @@ class Scheduler {
 
   void grade(Grade g);
   void resetTimer();
+  int cardsDue() { return due.size(); };
 };

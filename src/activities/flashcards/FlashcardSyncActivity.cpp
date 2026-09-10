@@ -38,11 +38,16 @@ std::string truncate(std::string s, int maxLen) {  // NOTE: where to put this
 }
 
 void FlashcardSyncActivity::onWifiSelectionComplete(const bool success) {
+  if (!success) {
+    // WARN: DO something
+    return;
+  }
+
   requestUpdateAndWait();
 
   LOG_INF("FlashcardSync", "Beginning sync");
 
-  AnkiConnect anki("http://192.168.0.112:8765");  // FIXME: hard-coded
+  AnkiConnect anki("http://192.168.0.104:8765");  // FIXME: hard-coded
   anki.init();
 
   auto decks = anki.deckNamesAndIds();

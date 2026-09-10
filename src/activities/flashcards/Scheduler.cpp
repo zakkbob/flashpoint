@@ -14,7 +14,10 @@ void Scheduler::grade(Grade g) {
   auto elapsed = millis() - reviewStartTime;
   cards.addReview(now, due[i].id, g, elapsed);
 
-  finished = ++i >= due.size();
+  i++;
+  currentCardId = due[i].id;
+  finished = i >= due.size();
+
   resetTimer();
 }
 

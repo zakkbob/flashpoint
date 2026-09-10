@@ -82,8 +82,12 @@ void FlashcardReviewActivity::loop() {
       case HalGPIO::BTN_BACK:
         finish();
         return;
+      default:
+        return;
     }
-  } else if (side == FRONT) {
+  }
+
+  if (side == FRONT) {
     switch (pressedButton) {
       case HalGPIO::BTN_BACK:
         finish();

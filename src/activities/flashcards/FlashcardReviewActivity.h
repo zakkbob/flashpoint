@@ -12,7 +12,7 @@ enum Side : int { FRONT, BACK };
 class FlashcardReviewActivity final : public Activity {
  private:
   CardStore& cards;
-  Scheduler& scheduler;
+  Scheduler scheduler;
   Side side = FRONT;
 
   void grade(Grade);
@@ -21,9 +21,8 @@ class FlashcardReviewActivity final : public Activity {
   void drawButtonHints();
 
  public:
-  FlashcardReviewActivity(GfxRenderer& renderer, MappedInputManager& mappedInput, CardStore& cards,
-                          Scheduler& scheduler)
-      : Activity("FlashcardReview", renderer, mappedInput), cards(cards), scheduler(scheduler) {};
+  FlashcardReviewActivity(GfxRenderer& renderer, MappedInputManager& mappedInput, CardStore& cards, long long deckId)
+      : Activity("FlashcardReview", renderer, mappedInput), cards(cards), scheduler(Scheduler(cards, deckId)) {};
 
   void onEnter() override;
   void onExit() override;
