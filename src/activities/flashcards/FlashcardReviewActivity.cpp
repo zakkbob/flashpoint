@@ -77,7 +77,13 @@ void FlashcardReviewActivity::renderFinishScreen() {
 void FlashcardReviewActivity::loop() {
   const int pressedButton = mappedInput.getPressedFrontButton();
 
-  if (side == FRONT) {
+  if (scheduler.finished) {
+    switch (pressedButton) {
+      case HalGPIO::BTN_BACK:
+        finish();
+        return;
+    }
+  } else if (side == FRONT) {
     switch (pressedButton) {
       case HalGPIO::BTN_BACK:
         finish();
